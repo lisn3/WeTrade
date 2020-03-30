@@ -34,12 +34,9 @@ contract('Trade',function(accounts){
 
         return web3.eth.getBalance(acct);}).then((dpst_p1)=>{
 
-        console.log("Before provider register，his balance is :"+ dpst_p1); //web3.fromWei(dpst_p1, 'ether')
-        
+        console.log("Before provider register，his balance is :"+ dpst_p1); 
         var data_hash=new Array(1000);
-        //var data_hash=["0xaf230a56630ab5f081d5fd9d4c4c08c65417e0e49b680b87d287923aa6c025bd","0x911e77b214c504666bbd69642887f360310f2fc3a00907a1a32baa07bd0bfe41","0xaf230a56630ab5f081d5fd9d4c4c08c65417e0e49b680b87d287923aa6c025bd","0xaf230a56630ab5f081d5fd9d4c4c08c65417e0e49b680b87d287923aa6c025bd","0xaf230a56630ab5f081d5fd9d4c4c08c65417e0e49b680b87d287923aa6c025bd","0xaf230a56630ab5f081d5fd9d4c4c08c65417e0e49b680b87d287923aa6c025bd","0xaf230a56630ab5f081d5fd9d4c4c08c65417e0e49b680b87d287923aa6c025bd","0xaf230a56630ab5f081d5fd9d4c4c08c65417e0e49b680b87d287923aa6c025bd","0xaf230a56630ab5f081d5fd9d4c4c08c65417e0e49b680b87d287923aa6c025bd","0xaf230a56630ab5f081d5fd9d4c4c08c65417e0e49b680b87d287923aa6c025bd"];
         const hash="0xaf230a56630ab5f081d5fd9d4c4c08c65417e0e49b680b87d287923aa6c025bd";
-	      //var data_hashes=Array.apply(null, {length: repeat* data_hash.length}).map(function(e,i){return data_hash[i%data_hash.length]});
         data_hash.fill(hash)
         return trade.Registration(data_hash, {from: acct, value: 300000}).then(function(tx){
 
@@ -53,7 +50,6 @@ contract('Trade',function(accounts){
 
 
           const hash="0xaf230a56630ab5f081d5fd9d4c4c08c65417e0e49b680b87d287923aa6c025bd";
-          //var sample_hash=["0xaf230a56630ab5f081d5fd9d4c4c08c65417e0e49b680b87d287923aa6c025bd", "0xaf230a56630ab5f081d5fd9d4c4c08c65417e0e49b680b87d287923aa6c025bd"];
 
           var sample_hash=new Array(100);  //sample 20 blocks;
 
@@ -78,8 +74,6 @@ contract('Trade',function(accounts){
 
           
           const plain="QmXoypizjW3WknFiJnKLwHCnL66vedxjQkDDP1mXWo6uco";
-          //var plain_sample_adr="QmXoypizjW3WknFiJnKLwHCnL66vedxjQkDDP1mXWo6ucoQmXoypizjW3WknFiJnKLwHCnL66vedxjQkDDP1mXWo6uco";
-
           var plain_sample_adr="";
 
           var rpt=100;
