@@ -2,7 +2,7 @@
 
 This project implement WeTrade--a privacy preserving data marketplace for deep learning.
 
-contract/-- smart contract in Ethereum.
+contract/-- smart contract on Ethereum.
 
 image recover/--using autoencoder to recover the target image.
 
