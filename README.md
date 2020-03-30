@@ -1,10 +1,10 @@
-# WeTrade
+# WeTrade: A Quality-Driven, Privacy-Preserving, and Economically-Fair Data Marketplace for Deep Learning
 
-This project implement WeTrade--a privacy preserving data marketplace for deep learning.
+We (partially) release the source code used in the WeTrade draft to assist the paper review. Please do not distribute it. Full implementation with detailed comments will be released at a proper time. 
 
-contract/-- smart contract on Ethereum.
+contract/-- smart contract deployable on Ethereum.
 
-image recover/--using autoencoder to recover the target image.
+image recovery/--using autoencoder to recover the target image.
 
          Note: fetch data from Mura densenet/dataloader/MURA-v1.1/
 model privacy/--encrypt one layer of an model, test its performance
