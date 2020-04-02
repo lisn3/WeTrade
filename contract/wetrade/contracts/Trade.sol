@@ -30,6 +30,15 @@ contract Trade{
 	event printbytes(bytes ss);
 	event printbytes32(bytes32 a);
 	event printlength(uint a);
+
+	event Evt_Create(address col, string modeladr, uint deposit, uint percentage, uint reward);
+	event Evt_Regst(address pid, bytes32[] hashes);
+	event Evt_SmpData(address indexed pid, bytes32[] sample_hash);
+	event Evt_SubFeat(address pid, string features);
+	event Evt_SetCand(address collector, address indexed candidate);
+	event Evt_SubReview(address indexed pid, string plain_sample, bytes32 K_data);
+	event Evt_SetOptimal(address indexed optimal);
+	event Evt_ClaimReward(address indexed pid, string data_plain);
 	
 	constructor() public{	
     }
@@ -39,10 +48,12 @@ contract Trade{
         adr_model=_modeladr; 
 		CF_deposit=_deposit;
 		CF_percentage=_percentage;
-		CF_expiry=2*24;
+		CF_expiry=2 days;
     	CF_reward=msg.value;
     	start_time=now;
     	state=0; //pending
+
+    	emit Evt_Create(msg.sender, _modeladr, _deposit, _percentage, msg.value);
     }
     
     function ConvertString2Arr(string memory ss, uint one_adr_len) public pure returns(string[] memory){
@@ -87,6 +98,8 @@ contract Trade{
 		P_profile[pid].adr_data_hash=adr_data_hash;
 		P_profile[pid].V_deposit=msg.value;
 		P_profile[pid].isRegisted=true;
+
+		emit Evt_Regst(pid, adr_data_hash);
 	}
 	
 	
@@ -97,6 +110,8 @@ contract Trade{
 		
 		P_profile[pid].adr_sample_hash=sample_hash;
 		P_profile[pid].sampled=true;
+
+		emit Evt_SmpData(pid, sample_hash);
 	}
 	
 	function SubmitFeatures(string memory features) public{
@@ -105,6 +120,8 @@ contract Trade{
 		assert(state==0 && P_profile[pid].setfeature==false);
 		P_profile[pid].adr_feature=features;
 		P_profile[pid].setfeature=true;
+
+		emit Evt_SubFeat(pid, features);
 	}
 	
 	function SetCandidate(address pid) public{
@@ -112,6 +129,8 @@ contract Trade{
 		assert(P_profile[pid].isRegisted);
 		P_tc=pid;
 		state=1; //reviewing
+
+		emit Evt_SetCand(msg.sender, pid);
 	}
 
 	function SubmitReview(address pid, string memory plain_sample, bytes32 K_data) public{
@@ -133,6 +152,8 @@ contract Trade{
 		}
 		P_profile[pid].Key_data=K_data;
 		P_profile[pid].adr_sample_plain=adr_sample_plain_arr;
+
+		emit Evt_SubReview(pid, plain_sample, K_data);
 	}
     
     function SetOptimal(address pid)public{
@@ -140,6 +161,8 @@ contract Trade{
         assert(pid==P_tc && P_opt==address(0));
         P_opt=pid;
         state=2;  //reviewed
+
+        emit Evt_SetOptimal(pid);
     }
     
     function ClaimReward(string memory data_plain)payable public{
@@ -160,6 +183,8 @@ contract Trade{
     	P_profile[msg.sender].adr_data_plain=adr_data_plain_arr;
     	(msg.sender).transfer(CF_reward);
     	state=3; //closed
+
+    	emit Evt_ClaimReward(msg.sender, data_plain);
     }
     
     function ClaimDeposit()payable public{
