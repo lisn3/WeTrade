@@ -2,9 +2,9 @@
 
 contracts, migrations and tests
 
-collector_dae: daemon program for collector, writing in web3@1.0
+collector_dae.js: daemon program for collector, writing in web3@1.0
 
-provider_dae: daemon program for providers
+provider_dae.js: daemon program for providers
 
 ## Usage
 
