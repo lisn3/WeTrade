@@ -9,12 +9,12 @@ config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
 sess = tf.InteractiveSession(config = config)
 
-batch_size=32
+batch_size=64
 input_size = 784
 hidden1 = 128
 hidden2 = 64
+hidden3=32
 out_size = 10
-batch_size = 128
 X_train, X_test, y_train, y_test=load_data('mnist')
 
 '''
@@ -37,9 +37,13 @@ w2=tf.Variable(tf.truncated_normal([hidden1,hidden2], stddev = 0.1),name='w2')
 b2=tf.Variable(tf.constant(0.01, shape = [hidden2]),name='b2')
 layer2=tf.nn.relu(tf.matmul(layer1,w2)+b2,name='layer2')
 
-w3=tf.Variable(tf.truncated_normal([hidden2,out_size], stddev = 0.1),name='w3')
-b3=tf.Variable(tf.constant(0.01, shape = [out_size]),name='b3')
-logits=tf.add(tf.matmul(layer2,w3),b3,name='layer3')
+w3=tf.Variable(tf.truncated_normal([hidden2,hidden3], stddev = 0.1),name='w3')
+b3=tf.Variable(tf.constant(0.01, shape = [hidden3]),name='b3')
+layer3=tf.nn.relu(tf.matmul(layer2,w3)+b3,name='layer3')
+
+w4=tf.Variable(tf.truncated_normal([hidden3,out_size], stddev = 0.1),name='w4')
+b4=tf.Variable(tf.constant(0.01, shape = [out_size]),name='b4')
+logits=tf.add(tf.matmul(layer3,w4),b4,name='layer4')
 pred_y=tf.nn.softmax(logits)
 pred_labels=tf.argmax(pred_y,1)
 

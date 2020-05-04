@@ -1,5 +1,5 @@
 import numpy as np
-
+import os
 np.random.seed(1337)  # for reproducibility
 from keras.datasets import mnist,fashion_mnist
 from keras.models import Sequential
@@ -11,6 +11,7 @@ import random
 import matplotlib.pyplot as plt
 import cv2
 from scipy import misc
+from skimage import util
 from collections import Counter
 
 # 全局变量
@@ -43,9 +44,9 @@ def hot2single(y):
             break
     return rlt
 
-def plot_training(history):
-    acc = history.history['acc']
-    val_acc = history.history['val_acc']
+def plot_training(history,fig_name):
+    acc = history.history['accuracy']
+    val_acc = history.history['val_accuracy']
     loss = history.history['loss']
     val_loss = history.history['val_loss']
     epochs = range(len(acc))
@@ -60,20 +61,23 @@ def plot_training(history):
     ax1.set_ylabel('Accuracy')
     ax2.set_ylabel('Loss')
     ax1.set_title('Training and validation accuracy and loss')
-    plt.show()
+    plt.savefig(os.path.join('resulting_figs/{}.png'.format(fig_name)))
+    plt.clf()
 
 # the data, shuffled and split between train and test sets
 (X_train, y_train), (X_test, y_test) = mnist.load_data()
 
 # 根据不同的backend定下不同的格式
+'''
 if K.image_dim_ordering() == 'th':
     X_train = X_train.reshape(X_train.shape[0], 1, img_rows, img_cols)
     X_test = X_test.reshape(X_test.shape[0], 1, img_rows, img_cols)
     input_shape = (1, img_rows, img_cols)
 else:
-    X_train = X_train.reshape(X_train.shape[0], img_rows, img_cols, 1)
-    X_test = X_test.reshape(X_test.shape[0], img_rows, img_cols, 1)
-    input_shape = (img_rows, img_cols, 1)
+'''
+X_train = X_train.reshape(X_train.shape[0], img_rows, img_cols, 1)
+X_test = X_test.reshape(X_test.shape[0], img_rows, img_cols, 1)
+input_shape = (img_rows, img_cols, 1)
 
 def wholedata(X_data, y_data):
     X_train = X_data.astype('float32')
@@ -140,60 +144,30 @@ def SaltAndPepper(src,percetage, salt):   #定义添加椒盐噪声的函数
             SP_NoiseImg[randX, randY] = 255
     return SP_NoiseImg
 
-    '''
-    for i in range(SP_NoiseNum):
-        randX=random.randint(0,src.shape[0]-1)
-        randY=random.randint(0,src.shape[1]-1)
-        if salt==0:
-            SP_NoiseImg[randX,randY]=0
-        else:
-            SP_NoiseImg[randX,randY]=255
-    return SP_NoiseImg
-'''
 
-def noisydata(X_data, y_data, data_num, percentage, name, mean=0, sigma=1):
+
+def noisydata(X_data, y_data, data_num, name, sigma, percentage):
     train_ind = random.sample(range(0, len(X_data)), data_num)
     X_train, y_train = X_data[train_ind], y_data[train_ind]
 
     y_train_ohe = np.array([tran_y(y_train[i]) for i in range(len(y_train))])
     y_train_ohe = y_train_ohe.astype('float32')
 
-    if name == 'gaussian':
-        for i in range(len(X_train)):
-            img = X_train[i]
-            if i == 0:
-                plt.imshow(np.reshape(img,[img_rows,img_cols]), cmap='gray')
-                plt.show()
-            Noiseimg = addGaussianNoise(img, percentage, mean, sigma)
-            if i == 0:
-                plt.imshow(np.reshape(img,[img_rows,img_cols]), cmap='gray')
-                plt.show()
-                Noiseimg = np.reshape(Noiseimg, input_shape)
-                # plt.imshow(Noiseimg, cmap='gray')
-                # plt.show()
-            X_train[i] = Noiseimg
-
-    if name == 'salt':
-        for i in range(len(X_train)):
-            img = X_train[i]
-            Noiseimg = SaltAndPepper(img, percentage, 1)
-            X_train[i] = Noiseimg
-
-    if name == 'pepper':
-        for i in range(len(X_train)):
-            img = X_train[i]
-            if i == 0:
-                plt.imshow(np.reshape(img,[img_rows,img_cols]), cmap='gray')
-                plt.show()
-            Noiseimg = SaltAndPepper(img, percentage, 0)
-            if i == 0:
-                Noiseimg = np.reshape(Noiseimg, input_shape)
-                plt.imshow(np.reshape(Noiseimg,[img_rows,img_cols]), cmap='gray')
-                plt.show()
-            X_train[i] = Noiseimg
-
     X_train = X_train.astype('float32')
     X_train /= 255.0
+
+    if name=='gaussian':
+        for i in range(len(X_train)):
+            img=X_train[i]
+            Noiseimg=util.random_noise(img, mode='gaussian',var=sigma)
+            X_train[i]=Noiseimg
+
+    if name=='pepper':
+        for i in range(len(X_train)):
+            img=X_train[i]
+            Noiseimg=util.random_noise(img, mode='pepper',amount=percentage)
+            X_train[i]=Noiseimg
+   
     return X_train, y_train_ohe
 
 
@@ -202,13 +176,13 @@ def down_sample(X_data, y_data, data_num, new_w, new_h):
     X_train, y_train = X_data[train_ind], y_data[train_ind]
 
     w, h = X_train[0].shape[0], X_train[0].shape[1]
-    # rew,reh= round(w*smallrate),round(h*smallrate)
-    plt.imshow(np.reshape(X_train[0],[img_rows,img_cols]), cmap='gray')
-    plt.show()
+    rew,reh= round(w*smallrate),round(h*smallrate)
+    #plt.imshow(np.reshape(X_train[0],[img_rows,img_cols]), cmap='gray')
+    #plt.show()
     X_1 = np.array([cv2.resize(i, (new_w, new_h)) for i in X_train])
     print("down sampling image shape: ", X_1.shape)
-    plt.imshow(np.reshape(X_1[0],[new_w,new_h]), cmap='gray')
-    plt.show()
+    #plt.imshow(np.reshape(X_1[0],[new_w,new_h]), cmap='gray')
+    #plt.show()
     X_ = [cv2.resize(i, (img_rows, img_cols)) for i in X_1]
     X_1= np.concatenate([arr[np.newaxis] for arr in X_]).astype('float32')
     X_1=X_1.reshape(X_1.shape[0], img_rows, img_cols, 1)
@@ -261,15 +235,7 @@ def unbalance(X_data, y_data, missclass):
             num=num+1
         if num==train_data_num:
             break
-        '''
-        if unbalance_list[lab] > 0:
-            X_train.append(X_data[i])
-            y_train.append(y_data[i])
-            unbalance_list[lab] = unbalance_list[lab] - 1
-            num = num + 1
-        if num == train_data_num:
-            break
-        '''
+    
     X_train = np.array(X_train).astype('float32')
     X_train /= 255.0
 
@@ -296,17 +262,14 @@ X_test/= 255.0
 
 #X_train_data, y_train_data = random_data(X_train, y_train,train_data_num)
 #X_train_data, y_train_data= mislabel(X_train, y_train, train_data_num, 0.8)
-#X_train_data, y_train_data= noisydata(X_train, y_train, train_data_num, 0.8, 'gaussian', 0, 50)
-#X_train_data, y_train_data= noisydata(X_train, y_train, train_data_num, 0.9, 'pepper')  #data missing
+X_train_data, y_train_data= noisydata(X_train, y_train, train_data_num, 'gaussian', 0.49, 0)
+#X_train_data, y_train_data= noisydata(X_train, y_train, train_data_num, 'pepper', 0.9)  #data missing
 #X_train_data, y_train_data= down_sample(X_train, y_train, train_data_num, 6, 6) #缩小50%
-X_train_data, y_train_data= unmatch_data( 0.9,'mnist','FashionMNIST') #50%的数据是不匹配的
+#X_train_data, y_train_data= unmatch_data( 0.9,'mnist','FashionMNIST') #50%的数据是不匹配的
 #X_train_data, y_train_data = unbalance(X_train, y_train, 7) # missclass=1
 #X_train_data, y_train_data= wholedata(X_train, y_train)
 
 print("training number:",X_train_data.shape[0])
-img=X_train_data[0]
-plt.imshow(np.reshape(img,[img_rows,img_cols]), cmap='gray')
-plt.show()
 
 
 # 构建模型--CNN
@@ -340,5 +303,5 @@ history_ft=model.fit(X_train_data, y_train_data, batch_size=batch_size, epochs=e
 score = model.evaluate(X_test, y_test, verbose=0)
 print('Test score:', score[0])
 print('Test accuracy:', score[1])
-plot_training(history_ft)
+plot_training(history_ft, 'gauss_whole')
 

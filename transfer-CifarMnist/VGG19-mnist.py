@@ -1,7 +1,7 @@
 # encoding: utf-8
 from keras.datasets import mnist,fashion_mnist
 import gc
-
+import os
 from keras.models import Sequential, Model
 from keras.layers import Input, Dense, Dropout, Flatten
 from keras.layers.convolutional import Conv2D, MaxPooling2D
@@ -11,6 +11,7 @@ from keras.applications.vgg19 import VGG19
 from keras.applications.inception_v3 import InceptionV3
 from keras.optimizers import SGD, Adam
 import time
+from skimage import util
 import matplotlib.pyplot as plt
 from collections import Counter
 
@@ -26,7 +27,7 @@ steps_per_epoch=100
 EPOCHS=30
 train_data_num=500
 test_data_num=1000
-layer_num=4  #fixed all
+layer_num=4  #fixed 1 block
 
 unbalance_list=[50,50,50,50,50,50,99,99,1,1]
 
@@ -40,9 +41,9 @@ def tran_y(y):
     y_ohe[y] = 1
     return y_ohe
 
-def plot_training(history):
-    acc = history.history['acc']
-    val_acc = history.history['val_acc']
+def plot_training(history, fig_name):
+    acc = history.history['accuracy']
+    val_acc = history.history['val_accuracy']
     loss = history.history['loss']
     val_loss = history.history['val_loss']
     epochs = range(len(acc))
@@ -57,7 +58,8 @@ def plot_training(history):
     ax1.set_ylabel('Accuracy')
     ax2.set_ylabel('Loss')
     ax1.set_title('Training and validation accuracy and loss')
-    plt.show()
+    plt.savefig(os.path.join('resulting_figs/{}.png'.format(fig_name)))
+    plt.clf()
 
 def process_x(X_data):
     X_ = [cv2.cvtColor(cv2.resize(i, (ishape, ishape)), cv2.COLOR_GRAY2BGR) for i in X_data]
@@ -126,48 +128,27 @@ def SaltAndPepper(src,percetage, salt):   #定义添加椒盐噪声的函数
     return SP_NoiseImg
 
 
-def noisydata(X_data, y_data, data_num, percentage, name, mean=0, sigma=1):
+def noisydata(X_data, y_data, data_num, name, sigma, percentage):
     train_ind = random.sample(range(0, len(X_data)), data_num)
     X_train, y_train = X_data[train_ind], y_data[train_ind]
 
     y_train_ohe = np.array([tran_y(y_train[i]) for i in range(len(y_train))])
     y_train_ohe = y_train_ohe.astype('float32')
 
+    X_train=process_x(X_train)
+
     if name=='gaussian':
         for i in range(len(X_train)):
             img=X_train[i]
-            if i==0:
-                plt.imshow(img, cmap='gray')
-                plt.show()
-            Noiseimg=addGaussianNoise(img, percentage, mean, sigma)
-            if i==0:
-                plt.imshow(img, cmap='gray')
-                plt.show()
-                Noiseimg= np.reshape(Noiseimg, [28, 28])
-                #plt.imshow(Noiseimg, cmap='gray')
-                #plt.show()
-            X_train[i]=Noiseimg
-
-    if name=='salt':
-        for i in range(len(X_train)):
-            img=X_train[i]
-            Noiseimg=SaltAndPepper(img, percentage, 1)
+            Noiseimg=util.random_noise(img, mode='gaussian',var=sigma)
             X_train[i]=Noiseimg
 
     if name=='pepper':
         for i in range(len(X_train)):
             img=X_train[i]
-            if i==0:
-                plt.imshow(img, cmap='gray')
-                plt.show()
-            Noiseimg=SaltAndPepper(img, percentage, 0)
-            if i==0:
-                Noiseimg= np.reshape(Noiseimg, [28, 28])
-                plt.imshow(Noiseimg, cmap='gray')
-                plt.show()
+            Noiseimg=util.random_noise(img, mode='pepper',amount=percentage)
             X_train[i]=Noiseimg
-
-    X_train=process_x(X_train)
+    
     return X_train, y_train_ohe
 
 
@@ -287,11 +268,11 @@ model_vgg_mnist_pretrain.compile(loss = 'categorical_crossentropy', optimizer = 
 #图片和标签来源：1，正常数据  2.mislabel 3.高斯噪声  4.像素缺失  5.降低分辨率  6.不匹配的数据
 #X_train_data, y_train_data = random_data(X_train, y_train,train_data_num)
 #X_train_data, y_train_data= mislabel(X_train, y_train, train_data_num, 0.7)
-#X_train_data, y_train_data= noisydata(X_train, y_train, train_data_num, 0.8, 'gaussian', 0, 5)
-#X_train_data, y_train_data= noisydata(X_train, y_train, train_data_num, 0.9, 'pepper')  #data missing
+X_train_data, y_train_data= noisydata(X_train, y_train, train_data_num, 'gaussian', 0.49, 0)
+#X_train_data, y_train_data= noisydata(X_train, y_train, train_data_num, 'pepper', 0.9)  #data missing
 #X_train_data, y_train_data= down_sample(X_train, y_train, train_data_num, 6, 6) #缩小50%
 #X_train_data, y_train_data= unmatch_data(0.95,'mnist','FashionMNIST') #50%的数据是不匹配的
-X_train_data, y_train_data = unbalance(X_train, y_train, 8)
+#X_train_data, y_train_data = unbalance(X_train, y_train, 8)
 
 datagen=data_gene(X_train_data)
 history_ft=model_vgg_mnist_pretrain.fit_generator(datagen.flow(X_train_data, y_train_data, batch_size=BATCH),
@@ -310,4 +291,4 @@ print("train_data_num: %d, fixed layer number: %d" % (train_data_num,layer_num-1
 print(u'ok,结束!')
 print(u'总共耗时：' + str(time2 - time1) + 's')
 
-plot_training(history_ft)
+plot_training(history_ft, 'noise_tl')

@@ -15,8 +15,8 @@ import time
 import matplotlib.pyplot as plt
 from keras.preprocessing.image import ImageDataGenerator
 from skimage import util
-from tflearn.datasets import oxflower17
-#os.environ['CUDA_VISIBLE_DEVICES']='0,1'
+#from tflearn.datasets import oxflower17
+os.environ['CUDA_VISIBLE_DEVICES']='0,1'
 
 BATCH=32
 EPOCH=20
@@ -24,7 +24,7 @@ steps_per_epoch=100
 LR=0.001
 DECAY=1e-6
 
-fixed_layer=249
+fixed_layer=156
 
 ishape=139
 
@@ -60,7 +60,8 @@ def plot_training(history):
     ax1.set_ylabel('Accuracy')
     ax2.set_ylabel('Loss')
     ax1.set_title('Training and validation accuracy and loss')
-    plt.show()
+    plt.savefig(os.path.join('train.png'))
+    plt.clf()
 
 aug_gen = ImageDataGenerator(
     featurewise_center = False,  # set input mean to 0 over the dataset
@@ -270,41 +271,42 @@ model_incept_cifar10_pretrain.compile(optimizer= adam, loss='categorical_crossen
 # pepper amount
 #alp=[0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
 #resize
-#alp=[24, 16, 8, 4]
+#alp=[24, 16, 8, 4, 30, 28, 26, 20, 12]
 #unmatch
 #alp=[0.5, 0.7, 0.9, 0.95, 0.98]
-alp=[0]
-for i in alp:
-	print("********************alp*************:",i)
-	X_train_data, y_train_data = random_data(X_train, y_train,train_data_num)
-	#X_train_data, y_train_data= mislabel(X_train, y_train, train_data_num, i)
-	#X_train_data, y_train_data= noisydata(X_train, y_train, train_data_num, 0.8, 'gaussian', 0, i)
-	#X_train_data, y_train_data= noisydata(X_train, y_train, train_data_num, i, 'pepper')  #data missing
-	#X_train_data, y_train_data= down_sample(X_train, y_train, train_data_num, i, i) #
-	#X_train_data, y_train_data= unmatch_data(X_train, y_train, i,'cifar10','oxflower17') #
-	#X_train_data, y_train_data = unbalance(X_train, y_train, i)
 
-	'''
-	history = model_incept_cifar10_pretrain.fit(X_train_data, y_train_data,
-	                                         validation_data=(X_test, y_test),
-	                                         epochs=EPOCH, batch_size=BATCH,
-	                                         validation_split=0.1,
-	                                         verbose=1,
-	                                         shuffle=True)'''
+alp=28
+print("********************alp*************:" alp)
+#X_train_data, y_train_data = random_data(X_train, y_train,train_data_num)
+#X_train_data, y_train_data= mislabel(X_train, y_train, train_data_num, i)
+#X_train_data, y_train_data= noisydata(X_train, y_train, train_data_num, 0.8, 'gaussian', 0, i)
+#X_train_data, y_train_data= noisydata(X_train, y_train, train_data_num, i, 'pepper')  #data missing
+X_train_data, y_train_data= down_sample(X_train, y_train, train_data_num, alp, alp) #
+#X_train_data, y_train_data= unmatch_data(X_train, y_train, i,'cifar10','oxflower17') #
+#X_train_data, y_train_data = unbalance(X_train, y_train, i)
 
-	aug_gen.fit(X_train_data)
-	gen = aug_gen.flow(X_train_data, y_train_data, batch_size=BATCH)
-	h = model_incept_cifar10_pretrain.fit_generator(generator=gen, 
-								steps_per_epoch=train_data_num//BATCH,
-								epochs=EPOCH, validation_data=(X_test, y_test))
+'''
+history = model_incept_cifar10_pretrain.fit(X_train_data, y_train_data,
+                                         validation_data=(X_test, y_test),
+                                         epochs=EPOCH, batch_size=BATCH,
+                                         validation_split=0.1,
+                                         verbose=1,
+                                         shuffle=True)'''
 
-
-	scores=model_incept_cifar10_pretrain.evaluate(X_test,y_test,verbose=0)
-
-	print ("testing score",scores)
+aug_gen.fit(X_train_data)
+gen = aug_gen.flow(X_train_data, y_train_data, batch_size=BATCH)
+h = model_incept_cifar10_pretrain.fit_generator(generator=gen, 
+							steps_per_epoch=train_data_num//BATCH,
+							epochs=EPOCH, validation_data=(X_test, y_test),
+                            workers=4)
 
 
-	time2 = time.time()
-	print("train_data_num: %d, fixed layer number: %d" % (train_data_num,fixed_layer-1))
-	print(u'ok, testing over!')
-	print(u' total time: ' + str(time2 - time1) + 's')
+scores=model_incept_cifar10_pretrain.evaluate(X_test,y_test,verbose=0)
+
+print ("testing score",scores)
+
+
+time2 = time.time()
+print("train_data_num: %d, fixed layer number: %d" % (train_data_num,fixed_layer-1))
+print(u'ok, testing over!')
+print(u' total time: ' + str(time2 - time1) + 's')

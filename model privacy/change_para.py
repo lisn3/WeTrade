@@ -7,7 +7,7 @@ import argparse
 from dataloader import load_data
 
 
-change_rate = [0.005, 0.05, 0.5, 5, 50] # 参数乘以4
+change_rate = [0.0005, 0.005, 0.05, 0.5, 5, 50] # 参数乘以4
 
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('--data', default='mnist')
