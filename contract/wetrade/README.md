@@ -9,3 +9,7 @@ provider_dae.js: daemon program for providers
 ## Usage
 
 See the [Truffle documentation](http://truffleframework.com/docs/) for more info.
+
+  npm install
+  
+  npm run dev
