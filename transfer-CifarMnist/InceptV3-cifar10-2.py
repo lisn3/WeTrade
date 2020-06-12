@@ -15,7 +15,7 @@ import time
 import matplotlib.pyplot as plt
 from keras.preprocessing.image import ImageDataGenerator
 from skimage import util
-#from tflearn.datasets import oxflower17
+from tflearn.datasets import oxflower17
 os.environ['CUDA_VISIBLE_DEVICES']='0,1'
 
 BATCH=32
