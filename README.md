@@ -1,4 +1,4 @@
-# WeTrade: A Quality-Driven, Privacy-Preserving, and Economically-Fair Data Marketplace for Deep Learning
+# HyperX: A Quality-Driven, Privacy-Preserving, and Economically-Fair Data Marketplace for Deep Learning
 
 We (partially) release the source code used in the WeTrade draft to assist the paper review. Please do not distribute it. Full implementation with detailed comments will be released at a proper time. 
 
